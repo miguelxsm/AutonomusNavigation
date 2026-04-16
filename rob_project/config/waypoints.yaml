@@ -1,0 +1,74 @@
+# =============================================================================
+# Waypoints and mission coordinates for the TurtleBot3 navigation project
+# FIB UPC - Robotics Project
+# =============================================================================
+
+mission:
+  # Phase I waypoints (sequential order)
+  phase_i_waypoints:
+    punt_b:
+      x: 3.72
+      y: 2.55
+      yaw: 0.0  # Will be computed dynamically
+    punt_o:
+      x: 5.10
+      y: 12.61
+      yaw: 0.0
+    zona_2_entry:
+      x: 5.00
+      y: 11.69  # Punt Base as Zona 2 reference
+      yaw: 0.0
+
+  # Phase II - Exploration and base point
+  punt_base:
+    x: 5.00
+    y: 11.69
+    yaw: 0.0
+
+  # Key reference points
+  reference_points:
+    punt_a:
+      x: 2.52
+      y: 1.35
+    punt_c:
+      x: 1.32
+      y: 0.95
+    punt_d:
+      x: 3.32
+      y: 0.95
+    porta:
+      x: 5.92
+      y: 8.12
+    punt_p:
+      x: 0.30
+      y: 11.01
+    punt_q:
+      x: 1.90
+      y: 12.21
+    punt_r:
+      x: 7.12
+      y: 12.61
+
+  # Passadis exploration area bounds (Phase II)
+  passadis:
+    x_min: 0.30
+    x_max: 7.12
+    y_min: 11.00
+    y_max: 13.00
+    exploration_step: 1.0  # meters between sweep lines
+
+  # Station detection parameters
+  station:
+    side_length: 0.40        # 40cm x 40cm station
+    pillar_diameter: 0.05    # ~5cm diameter cylinders
+    pillar_tolerance: 0.10   # tolerance for pillar matching
+    pattern_tolerance: 0.15  # tolerance for square pattern matching
+
+  # Safety parameters
+  safety:
+    emergency_stop_distance: 0.15  # meters - hard stop
+    slowdown_distance: 0.40        # meters - reduce speed
+    max_linear_speed: 0.15         # m/s
+    max_angular_speed: 0.5         # rad/s
+    parking_linear_speed: 0.05     # m/s - precision phase
+    parking_angular_speed: 0.2     # rad/s - precision phase
