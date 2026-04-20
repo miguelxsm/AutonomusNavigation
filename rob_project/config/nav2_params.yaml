@@ -175,6 +175,11 @@ global_costmap:
       robot_radius: 0.14
       resolution: 0.05
       track_unknown_space: true
+      # Use rolling window so the costmap always covers the robot position
+      # (SLAM starts with a tiny map that may not include the robot origin)
+      rolling_window: true
+      width: 20
+      height: 20
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
