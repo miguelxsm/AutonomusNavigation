@@ -1,0 +1,95 @@
+ROBOT EXECUTION STEPS
+=====================
+
+These commands assume:
+- ROS 2 Jazzy is installed
+- You are connected to the TurtleBot3 by SSH
+- The project is in /home/miguel/Escritorio/ROB/project
+- Nav2 + SLAM are launched on the robot side
+
+
+TERMINAL 1 - Build and prepare the workspace
+--------------------------------------------
+
+cd /home/miguel/Escritorio/ROB/project
+source /opt/ros/jazzy/setup.bash
+colcon build --packages-select rob_project
+source install/setup.bash
+ros2 pkg executables rob_project
+
+
+TERMINAL 2 - Start Nav2 + SLAM
+------------------------------
+
+cd /home/miguel/Escritorio/ROB/project
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 launch nav2_bringup slam:=true
+
+
+TERMINAL 3 - Check Nav2 and TF are ready
+----------------------------------------
+
+cd /home/miguel/Escritorio/ROB/project
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 action list | grep navigate_to_pose
+ros2 run tf2_ros tf2_echo map base_link
+
+If the previous TF command fails, try this one instead:
+
+ros2 run tf2_ros tf2_echo map base_footprint
+
+
+TERMINAL 4 - Send a relative goal
+---------------------------------
+
+Example: move 1 meter forward from the robot start pose:
+
+cd /home/miguel/Escritorio/ROB/project
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=1.0 -p goal_y:=0.0 -p goal_yaw:=0.0
+
+
+If your robot uses base_footprint instead of base_link:
+
+cd /home/miguel/Escritorio/ROB/project
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=1.0 -p goal_y:=0.0 -p goal_yaw:=0.0 -p robot_frame:=base_footprint
+
+
+MORE EXAMPLES
+-------------
+
+Move 0.5 meters forward:
+
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.5 -p goal_y:=0.0 -p goal_yaw:=0.0
+
+Move 0.5 meters to the left relative to the start orientation:
+
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.0 -p goal_y:=0.5 -p goal_yaw:=0.0
+
+Move 1 meter forward and finish rotated 90 degrees:
+
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=1.0 -p goal_y:=0.0 -p goal_yaw:=1.57
+
+
+DEBUG COMMANDS
+--------------
+
+ros2 node list
+ros2 topic list
+ros2 action list
+ros2 topic echo /odom
+ros2 topic echo /tf
+
+
+ZSH NOTE
+--------
+
+If the shell is zsh, replace setup.bash with setup.zsh:
+
+source /opt/ros/jazzy/setup.zsh
+source install/setup.zsh
