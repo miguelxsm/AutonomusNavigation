@@ -18,6 +18,8 @@ setup(
             glob(os.path.join('config', '*.yaml'))),
         (os.path.join('share', package_name, 'maps'),
             glob(os.path.join('maps', '*'))),
+        (os.path.join('share', package_name, 'worlds'),
+            glob(os.path.join('worlds', '*.world'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -34,6 +36,8 @@ setup(
             'precision_parking = rob_project.precision_parking:main',
             'csv_logger = rob_project.csv_logger:main',
             'relative_goal_nav = rob_project.relative_goal_nav:main',
+            'nav2_lifecycle_starter = rob_project.nav2_lifecycle_starter:main',
+            'sim_warmup_motion = rob_project.sim_warmup_motion:main',
         ],
     },
 )
