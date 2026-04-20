@@ -33,6 +33,7 @@ setup(
             'station_detector = rob_project.station_detector:main',
             'precision_parking = rob_project.precision_parking:main',
             'csv_logger = rob_project.csv_logger:main',
+            'relative_goal_nav = rob_project.relative_goal_nav:main',
         ],
     },
 )
