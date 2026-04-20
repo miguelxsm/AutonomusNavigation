@@ -12,6 +12,63 @@ Important:
 - On the LAPTOP/PC run Nav2, SLAM, RViz and rob_project scripts
 
 
+FIRST TIME SETUP - UNIVERSITY ADDITIONAL PACKAGE
+------------------------------------------------
+
+The university zip contains:
+- install_ros2_turtlebot.sh
+- go_stop_OK.py
+- Passos inicialitzacio alumnes.docx
+
+If the machine is not prepared yet, first extract the zip and run the install
+script from the parent folder where the university files are stored.
+
+Example from this repository parent folder:
+
+cd /home/miguel/Escritorio/ROB
+
+The zip must be extracted first. If it is not extracted yet:
+
+cd /home/miguel/Escritorio/ROB
+unzip "additional_packages (2).zip" -d additional_packages_university
+
+Then run the university installer:
+
+cd /home/miguel/Escritorio/ROB/additional_packages_university
+chmod +x install_ros2_turtlebot.sh
+./install_ros2_turtlebot.sh
+
+After the installation ends, reload the shell:
+
+source ~/.bashrc
+
+The installer should leave these variables configured:
+
+export TURTLEBOT3_MODEL=burger
+export ROS_DOMAIN_ID=30
+source /opt/ros/jazzy/setup.bash
+source ~/turtlebot3_ws/install/setup.bash
+
+If you need to edit the shell config manually, the university notes use:
+
+nano ~/.bashrc
+source ~/.bashrc
+
+
+QUICK CHECK AFTER UNIVERSITY INSTALL
+------------------------------------
+
+source ~/.bashrc
+echo $ROS_DOMAIN_ID
+echo $TURTLEBOT3_MODEL
+ros2 pkg list | grep turtlebot3
+
+Expected values:
+- ROS_DOMAIN_ID should be 30
+- TURTLEBOT3_MODEL should be burger
+- turtlebot3 packages should appear in ros2 pkg list
+
+
 ROBOT SSH TERMINAL
 ------------------
 
@@ -121,3 +178,5 @@ NOTES
 - The university install script already adds ~/turtlebot3_ws to ~/.bashrc
 - source ~/.bashrc is preferred over sourcing only /opt/ros/jazzy/setup.bash
 - If using zsh, replace setup.bash with setup.zsh only when needed
+- go_stop_OK.py from the additional package is only a sample node; it is not
+  required to run rob_project
