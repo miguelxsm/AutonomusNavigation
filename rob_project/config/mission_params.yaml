@@ -1,0 +1,14 @@
+mission_planner:
+  ros__parameters:
+    punt_b.x: 3.72
+    punt_b.y: 2.55
+    punt_o.x: 5.10
+    punt_o.y: 12.61
+    punt_base.x: 5.00
+    punt_base.y: 11.69
+    passadis.x_min: 0.30
+    passadis.x_max: 7.12
+    passadis.y_min: 11.00
+    passadis.y_max: 13.00
+    passadis.exploration_step: 1.0
+    map_save_path: /home/miguel/Escritorio/ROB/project/rob_project/maps/slam_map

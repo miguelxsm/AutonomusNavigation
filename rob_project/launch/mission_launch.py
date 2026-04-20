@@ -23,7 +23,7 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('rob_project')
     nav2_params_file = os.path.join(pkg_dir, 'config', 'nav2_params.yaml')
     slam_params_file = os.path.join(pkg_dir, 'config', 'slam_params.yaml')
-    waypoints_file = os.path.join(pkg_dir, 'config', 'waypoints.yaml')
+    mission_params_file = os.path.join(pkg_dir, 'config', 'mission_params.yaml')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
 
@@ -61,7 +61,7 @@ def generate_launch_description():
         name='mission_planner',
         output='screen',
         parameters=[
-            waypoints_file,
+            mission_params_file,
             {'use_sim_time': use_sim_time},
         ],
     )
