@@ -1,37 +1,48 @@
-ROBOT EXECUTION STEPS
-=====================
+UNIVERSITY LAB EXECUTION STEPS
+==============================
 
-These commands assume:
-- ROS 2 Jazzy is installed
-- You are connected to the TurtleBot3 by SSH
-- The project is in /home/miguel/Escritorio/ROB/project
-- Nav2 + SLAM are launched on the robot side
+This guide follows the setup from the university package:
+- ROS 2 Jazzy installed with install_ros2_turtlebot.sh
+- ~/turtlebot3_ws already exists and is sourced from ~/.bashrc
+- TURTLEBOT3_MODEL=burger
+- ROS_DOMAIN_ID=30
+
+Important:
+- On the ROBOT over SSH run only turtlebot bringup
+- On the LAPTOP/PC run Nav2, SLAM, RViz and rob_project scripts
 
 
-TERMINAL 1 - Build and prepare the workspace
---------------------------------------------
+ROBOT SSH TERMINAL
+------------------
+
+ssh ubuntu@10.10.73.2xx
+source ~/.bashrc
+ros2 launch turtlebot3_bringup robot.launch.py
+
+
+PC TERMINAL 1 - Build rob_project
+---------------------------------
 
 cd /home/miguel/Escritorio/ROB/project
-source /opt/ros/jazzy/setup.bash
+source ~/.bashrc
 colcon build --packages-select rob_project
 source install/setup.bash
 ros2 pkg executables rob_project
 
 
-TERMINAL 2 - Start Nav2 + SLAM
-------------------------------
+PC TERMINAL 2 - Start Nav2 + SLAM
+---------------------------------
 
 cd /home/miguel/Escritorio/ROB/project
-source /opt/ros/jazzy/setup.bash
-source install/setup.bash
-ros2 launch nav2_bringup slam:=true
+source ~/.bashrc
+ros2 launch nav2_bringup bringup_launch.py slam:=True
 
 
-TERMINAL 3 - Check Nav2 and TF are ready
-----------------------------------------
+PC TERMINAL 3 - Check action server and TF
+------------------------------------------
 
 cd /home/miguel/Escritorio/ROB/project
-source /opt/ros/jazzy/setup.bash
+source ~/.bashrc
 source install/setup.bash
 ros2 action list | grep navigate_to_pose
 ros2 run tf2_ros tf2_echo map base_link
@@ -41,23 +52,23 @@ If the previous TF command fails, try this one instead:
 ros2 run tf2_ros tf2_echo map base_footprint
 
 
-TERMINAL 4 - Send a relative goal
----------------------------------
+PC TERMINAL 4 - Send a relative goal
+------------------------------------
 
-Example: move 1 meter forward from the robot start pose:
+Small first test: move 30 cm forward from the robot start pose:
 
 cd /home/miguel/Escritorio/ROB/project
-source /opt/ros/jazzy/setup.bash
+source ~/.bashrc
 source install/setup.bash
-ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=1.0 -p goal_y:=0.0 -p goal_yaw:=0.0
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.3 -p goal_y:=0.0 -p goal_yaw:=0.0
 
 
 If your robot uses base_footprint instead of base_link:
 
 cd /home/miguel/Escritorio/ROB/project
-source /opt/ros/jazzy/setup.bash
+source ~/.bashrc
 source install/setup.bash
-ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=1.0 -p goal_y:=0.0 -p goal_yaw:=0.0 -p robot_frame:=base_footprint
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.3 -p goal_y:=0.0 -p goal_yaw:=0.0 -p robot_frame:=base_footprint
 
 
 MORE EXAMPLES
@@ -67,18 +78,21 @@ Move 0.5 meters forward:
 
 ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.5 -p goal_y:=0.0 -p goal_yaw:=0.0
 
-Move 0.5 meters to the left relative to the start orientation:
+Move 0.3 meters to the left relative to the start orientation:
 
-ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.0 -p goal_y:=0.5 -p goal_yaw:=0.0
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.0 -p goal_y:=0.3 -p goal_yaw:=0.0
 
 Move 1 meter forward and finish rotated 90 degrees:
 
 ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=1.0 -p goal_y:=0.0 -p goal_yaw:=1.57
 
 
-DEBUG COMMANDS
---------------
+DEBUG COMMANDS ON THE PC
+------------------------
 
+source ~/.bashrc
+cd /home/miguel/Escritorio/ROB/project
+source install/setup.bash
 ros2 node list
 ros2 topic list
 ros2 action list
@@ -86,10 +100,24 @@ ros2 topic echo /odom
 ros2 topic echo /tf
 
 
-ZSH NOTE
---------
+IF NAV2 CRASHES WITH FASTCDR ERRORS
+-----------------------------------
 
-If the shell is zsh, replace setup.bash with setup.zsh:
+source /opt/ros/jazzy/setup.bash
+sudo apt update
+sudo apt install --reinstall \
+  ros-jazzy-fastcdr \
+  ros-jazzy-nav2-msgs \
+  ros-jazzy-navigation2 \
+  ros-jazzy-nav2-bringup \
+  ros-jazzy-rmw-fastrtps-cpp \
+  ros-jazzy-rmw-fastrtps-shared-cpp
+sudo ldconfig
 
-source /opt/ros/jazzy/setup.zsh
-source install/setup.zsh
+
+NOTES
+-----
+
+- The university install script already adds ~/turtlebot3_ws to ~/.bashrc
+- source ~/.bashrc is preferred over sourcing only /opt/ros/jazzy/setup.bash
+- If using zsh, replace setup.bash with setup.zsh only when needed
