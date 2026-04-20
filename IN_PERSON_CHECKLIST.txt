@@ -1,0 +1,85 @@
+IN-PERSON CHECKLIST
+===================
+
+What remains before testing on the real robot
+---------------------------------------------
+
+1. Verify the laptop and robot use the same ROS_DOMAIN_ID.
+2. Verify the real TurtleBot3 publishes:
+   - /scan
+   - /odom
+   - /tf
+   - /tf_static
+3. Verify cmd_vel interface on the real robot:
+   - current project uses TwistStamped on /cmd_vel
+4. Run a very small safety test first:
+   - rotate in place
+   - move 0.2 to 0.3 m forward
+   - emergency stop check
+5. Re-tune only the parameters that usually differ from simulation:
+   - max linear speed
+   - max angular speed
+   - inflation radius
+   - goal tolerance
+   - obstacle stop distance
+   - parking speed
+6. Generate a fresh SLAM map in the real environment.
+7. Save that map and keep the file pair:
+   - .yaml
+   - .pgm
+8. Test the route incrementally:
+   - start -> B
+   - B -> O
+   - O -> Base
+9. Only after that test the full mission loop.
+10. Keep a CSV log during the real test and compare it with simulation.
+
+
+Ready-for-robot criteria
+------------------------
+
+The project is in good shape when all these are true:
+
+- rob_project builds without errors
+- local simulator works with teleop
+- SLAM publishes /map
+- Nav2 reaches active state completely
+- relative goal test works repeatedly
+- map saving works
+- no duplicate Gazebo/Nav2 processes remain after cleanup
+- obstacle detector can stop the robot safely
+
+
+Recommended real test order
+---------------------------
+
+1. Bringup robot only.
+2. Check topics and TF.
+3. Test teleop.
+4. Test one short automatic goal.
+5. Test SLAM exploration.
+6. Save map.
+7. Test waypoint route.
+8. Test full mission.
+
+
+Failure signs to stop immediately
+---------------------------------
+
+- /scan drops out
+- /odom or TF disappear
+- Nav2 rejects goals repeatedly
+- robot does not stop when expected
+- robot clips obstacles or walls
+- station detection oscillates wildly
+
+
+What to bring / prepare for the in-person session
+-------------------------------------------------
+
+- charged laptop
+- robot battery charged
+- same repo version as local simulation
+- known working commands from LOCAL_SIMULATION_SETUP.txt
+- saved local validation logs if needed for comparison
+- a small sequence of test goals already decided

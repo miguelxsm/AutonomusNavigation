@@ -1,0 +1,239 @@
+LOCAL SIMULATION SETUP
+======================
+
+Current state on this computer
+------------------------------
+
+- Ubuntu 24.04 is available
+- ROS 2 Jazzy is installed in /opt/ros/jazzy
+- Gazebo Sim (gz) is installed
+- ~/turtlebot3_ws exists
+- The missing TurtleBot3 simulation packages were rebuilt successfully
+- rob_project builds correctly in a clean ROS environment
+
+
+Important note about this computer
+----------------------------------
+
+Your default python3 comes from miniconda, and that breaks colcon/ROS builds.
+Always start by sourcing the helper below from the repo root.
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+
+The helper also forces FastDDS to use UDP only in local development to avoid
+the noisy `RTPS_TRANSPORT_SHM Error` messages from shared-memory transport.
+
+If you want me to inspect what a ROS command printed, use the logging wrapper:
+
+cd /home/miguel/Escritorio/ROB/project
+./run_ros_logged.sh ros2 launch rob_project relative_goal_test.launch.py goal_x:=0.3 goal_y:=0.0 goal_yaw:=0.0
+
+This stores logs in:
+- `runtime_logs/latest/console.log`
+- `runtime_logs/latest/ros/`
+
+Then you can tell me to inspect `runtime_logs/latest/console.log`.
+
+
+If TurtleBot3 simulation is not prepared on another machine
+-----------------------------------------------------------
+
+Use the university script from the parent folder:
+
+cd /home/miguel/Escritorio/ROB
+unzip "additional_packages (2).zip" -d additional_packages_university
+cd /home/miguel/Escritorio/ROB/additional_packages_university
+chmod +x install_ros2_turtlebot.sh
+./install_ros2_turtlebot.sh
+
+Then open a new terminal and continue with the steps below.
+
+
+Daily workflow for local development
+------------------------------------
+
+Before starting a fresh test, clean old ROS/Gazebo processes from previous
+attempts:
+
+cd /home/miguel/Escritorio/ROB/project
+./cleanup_ros_local.sh
+
+Or use the wrapper that already cleans and starts the full local stack:
+
+cd /home/miguel/Escritorio/ROB/project
+./start_local_validation.sh
+
+Terminal 1 - build the project package:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+colcon build --packages-select rob_project
+source install/setup.bash
+
+If your terminal is zsh, use this instead of the previous line:
+
+source install/setup.zsh
+
+
+Terminal 2 - launch the usual TurtleBot3 simulator with GUI:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+Other useful simulator worlds:
+
+ros2 launch turtlebot3_gazebo empty_world.launch.py
+ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
+
+
+Terminal 3 - teleop check:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+ros2 run turtlebot3_teleop teleop_keyboard
+
+If W/A/S/D moves the robot in Gazebo, the local simulator is working.
+
+
+Fastest full-stack validation
+-----------------------------
+
+This is the easiest way to check the whole local stack:
+
+Terminal 1:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+colcon build --packages-select rob_project
+source install/setup.bash
+ros2 launch rob_project local_nav2_validation.launch.py headless:=true
+
+Logged version:
+
+./run_ros_logged.sh ros2 launch rob_project local_nav2_validation.launch.py headless:=true
+
+This starts:
+- TurtleBot3 simulation
+- SLAM Toolbox
+- Nav2
+
+When that is up, use a second terminal to move the robot a little and build a
+small map:
+
+Terminal 2:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+ros2 run turtlebot3_teleop teleop_keyboard
+
+Then test a simple relative goal in a third terminal:
+
+Terminal 3:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+source install/setup.bash
+ros2 launch rob_project relative_goal_test.launch.py goal_x:=0.3 goal_y:=0.0 goal_yaw:=0.0
+
+Logged version:
+
+./run_ros_logged.sh ros2 launch rob_project relative_goal_test.launch.py goal_x:=0.3 goal_y:=0.0 goal_yaw:=0.0
+
+Important: if the goal node prints warnings like
+`Ignoring unexpected goal response` or if it never advances, you probably have
+old Nav2 / Gazebo processes still running. Execute `./cleanup_ros_local.sh`
+and restart the three terminals from zero.
+
+If your terminal is zsh, use:
+
+source install/setup.zsh
+
+If you want GUI instead of headless:
+
+ros2 launch rob_project local_nav2_validation.launch.py headless:=false use_rviz:=true
+
+Simpler wrapper:
+
+./start_local_validation_gui.sh
+
+
+Headless mode for this machine / CLI testing
+--------------------------------------------
+
+This environment cannot open Gazebo GUI from the CLI session, so a headless
+launch was added to this repo:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+source install/setup.bash
+ros2 launch rob_project tb3_sim_headless.launch.py
+
+Headless launch with house world:
+
+ros2 launch rob_project tb3_sim_headless.launch.py world:=turtlebot3_house.world
+
+
+Useful checks while the simulator is running
+--------------------------------------------
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+source install/setup.bash
+ros2 topic list | grep -E '^/scan$|^/odom$|^/tf$|^/clock$'
+ros2 topic echo /odom --once
+ros2 topic echo /scan --once
+
+
+Run your current test node
+--------------------------
+
+With simulator already running:
+
+cd /home/miguel/Escritorio/ROB/project
+source source_local_env.sh
+source install/setup.bash
+ros2 run rob_project relative_goal_nav --ros-args -p goal_x:=0.3 -p goal_y:=0.0 -p goal_yaw:=0.0
+
+Equivalent launch form with use_sim_time already enabled:
+
+ros2 launch rob_project relative_goal_test.launch.py goal_x:=0.3 goal_y:=0.0 goal_yaw:=0.0
+
+Simpler wrapper:
+
+./send_relative_goal.sh 0.6 0.0 0.0
+
+
+Teleop while Nav2 stack is running
+----------------------------------
+
+When `local_nav2_validation.launch.py` is active, do not publish teleop directly
+to `/cmd_vel`, because Nav2 also owns the command path. Use this wrapper so the
+keyboard commands go through `/cmd_vel_nav` and the velocity smoother:
+
+cd /home/miguel/Escritorio/ROB/project
+./teleop_local_nav.sh
+
+
+Save the current SLAM map
+-------------------------
+
+With the validation stack already running:
+
+cd /home/miguel/Escritorio/ROB/project
+./save_current_map.sh sim_lab_map
+
+The files are saved in `generated_maps/`.
+
+
+Next project steps for local testing
+------------------------------------
+
+Recommended order:
+
+1. Verify simulator + teleop
+2. Verify /scan, /odom and /tf topics
+3. Launch SLAM / Nav2 locally
+4. Test simple relative navigation
+5. Integrate the full mission planner
