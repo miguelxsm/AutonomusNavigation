@@ -74,6 +74,9 @@ class StationDetector(Node):
         self.create_subscription(
             Odometry, '/odom', self.odom_callback, qos_best_effort
         )
+        self.create_subscription(
+            Bool, '/station_detector/enable', self.enable_callback, qos_reliable
+        )
 
         # Publishers
         self.station_pose_pub = self.create_publisher(
@@ -87,6 +90,13 @@ class StationDetector(Node):
         self.create_timer(0.5, self.detect_station)
 
         self.get_logger().info('Station detector initialized (disabled until Phase II).')
+
+    def enable_callback(self, msg):
+        """Enable or disable station detection."""
+        self.enabled = msg.data
+        self.get_logger().info(
+            f'Station detector {"enabled" if self.enabled else "disabled"}.'
+        )
 
     def scan_callback(self, msg):
         """Store latest scan data."""

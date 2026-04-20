@@ -9,7 +9,6 @@ Orchestrates the full autonomous navigation mission:
 """
 
 import math
-import time
 import subprocess
 
 import rclpy
@@ -18,17 +17,14 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy
 from rclpy.action import ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
 
-from nav2_msgs.action import NavigateToPose, NavigateThroughPoses
+from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import String, Bool
-from sensor_msgs.msg import LaserScan
 
 from rob_project.utils import (
     euler_from_quaternion,
     create_pose_stamped,
-    distance,
-    quaternion_from_yaw,
 )
 
 
@@ -108,6 +104,10 @@ class MissionPlanner(Node):
         self.station_detected = False
         self.emergency_stop = False
         self.nav_goal_active = False
+        self.nav_goal_succeeded = False
+        self.nav_goal_failed = False
+        self.odom_received = False
+        self.waiting_for_odom_logged = False
         self.current_waypoint_idx = 0
         self.phase_i_waypoints = []
         self.exploration_waypoints = []
@@ -168,6 +168,7 @@ class MissionPlanner(Node):
 
     def odom_callback(self, msg):
         """Update robot pose."""
+        self.odom_received = True
         self.robot_x = msg.pose.pose.position.x
         self.robot_y = msg.pose.pose.position.y
         self.robot_yaw = euler_from_quaternion(msg.pose.pose.orientation)
@@ -211,6 +212,8 @@ class MissionPlanner(Node):
 
         self.get_logger().info(f'Sending nav goal: ({x:.2f}, {y:.2f})')
         self.nav_goal_active = True
+        self.nav_goal_succeeded = False
+        self.nav_goal_failed = False
 
         future = self.nav_to_pose_client.send_goal_async(
             goal_msg, feedback_callback=self.nav_feedback_callback
@@ -223,6 +226,7 @@ class MissionPlanner(Node):
         if not goal_handle.accepted:
             self.get_logger().warn('Nav goal rejected!')
             self.nav_goal_active = False
+            self.nav_goal_failed = True
             return
 
         self.get_logger().info('Nav goal accepted.')
@@ -233,7 +237,24 @@ class MissionPlanner(Node):
         """Handle navigation result."""
         result = future.result()
         self.nav_goal_active = False
-        self.get_logger().info('Nav goal completed.')
+        self.nav_goal_succeeded = result.status == 4
+        self.nav_goal_failed = not self.nav_goal_succeeded
+        if self.nav_goal_succeeded:
+            self.get_logger().info('Nav goal completed successfully.')
+        else:
+            self.get_logger().warn(
+                f'Nav goal finished with status {result.status}.'
+            )
+
+    def can_start_navigation(self):
+        """Return True only when odom is available for Nav2 usage."""
+        if self.odom_received:
+            return True
+
+        if not self.waiting_for_odom_logged:
+            self.get_logger().info('Waiting for /odom before starting mission...')
+            self.waiting_for_odom_logged = True
+        return False
 
     def nav_feedback_callback(self, feedback_msg):
         """Handle navigation feedback (optional logging)."""
@@ -322,6 +343,10 @@ class MissionPlanner(Node):
         ):
             return
 
+        if self.state not in (self.STATE_INIT, self.STATE_DONE, self.STATE_ERROR):
+            if not self.can_start_navigation():
+                return
+
         # ---- PHASE I: Navigate Zona1 -> B -> O -> Zona2 ----
         if self.state == self.STATE_PHASE_I:
             self.get_logger().info('=== PHASE I: Global Navigation ===')
@@ -338,7 +363,11 @@ class MissionPlanner(Node):
             self.send_nav_goal(wp[0], wp[1])
 
         elif self.state == self.STATE_PHASE_I_NAV:
-            if not self.nav_goal_active:
+            if self.nav_goal_failed:
+                self.get_logger().warn('Retrying current Phase I waypoint.')
+                wp = self.phase_i_waypoints[self.current_waypoint_idx]
+                self.send_nav_goal(wp[0], wp[1])
+            elif self.nav_goal_succeeded and not self.nav_goal_active:
                 self.current_waypoint_idx += 1
                 if self.current_waypoint_idx < len(self.phase_i_waypoints):
                     wp = self.phase_i_waypoints[self.current_waypoint_idx]
@@ -372,7 +401,11 @@ class MissionPlanner(Node):
                 self.send_nav_goal(self.punt_base[0], self.punt_base[1])
                 return
 
-            if not self.nav_goal_active:
+            if self.nav_goal_failed:
+                self.get_logger().warn('Retrying current exploration waypoint.')
+                wp = self.exploration_waypoints[self.current_waypoint_idx]
+                self.send_nav_goal(wp[0], wp[1])
+            elif self.nav_goal_succeeded and not self.nav_goal_active:
                 self.current_waypoint_idx += 1
                 if self.current_waypoint_idx < len(self.exploration_waypoints):
                     wp = self.exploration_waypoints[self.current_waypoint_idx]
@@ -392,7 +425,10 @@ class MissionPlanner(Node):
                     self.send_nav_goal(self.punt_base[0], self.punt_base[1])
 
         elif self.state == self.STATE_PHASE_II_RETURN:
-            if not self.nav_goal_active:
+            if self.nav_goal_failed:
+                self.get_logger().warn('Retrying return to Punt Base.')
+                self.send_nav_goal(self.punt_base[0], self.punt_base[1])
+            elif self.nav_goal_succeeded and not self.nav_goal_active:
                 self.get_logger().info('Back at Punt Base.')
                 self.state = self.STATE_SAVE_MAP
 
@@ -428,7 +464,17 @@ class MissionPlanner(Node):
                 self.send_nav_goal(approach_x, approach_y, station_yaw)
 
         elif self.state == self.STATE_PHASE_III_GOTO_BASE:
-            if not self.nav_goal_active:
+            if self.nav_goal_failed:
+                self.get_logger().warn('Retrying approach to station.')
+                station_x = self.station_pose.pose.position.x
+                station_y = self.station_pose.pose.position.y
+                station_yaw = euler_from_quaternion(
+                    self.station_pose.pose.orientation
+                )
+                approach_x = station_x - 0.5 * math.cos(station_yaw)
+                approach_y = station_y - 0.5 * math.sin(station_yaw)
+                self.send_nav_goal(approach_x, approach_y, station_yaw)
+            elif self.nav_goal_succeeded and not self.nav_goal_active:
                 self.get_logger().info(
                     'Near station. Handing off to precision parking.'
                 )
