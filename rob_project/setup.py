@@ -38,6 +38,7 @@ setup(
             'relative_goal_nav = rob_project.relative_goal_nav:main',
             'nav2_lifecycle_starter = rob_project.nav2_lifecycle_starter:main',
             'sim_warmup_motion = rob_project.sim_warmup_motion:main',
+            'waypoint_runner = rob_project.waypoint_runner:main',
         ],
     },
 )

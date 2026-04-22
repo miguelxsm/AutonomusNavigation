@@ -1,74 +1,61 @@
 # =============================================================================
 # Waypoints and mission coordinates for the TurtleBot3 navigation project
 # FIB UPC - Robotics Project
+# Coordinates from PROJECT_Autonomous Navigation2.pdf
+# All coordinates in meters relative to map origin
 # =============================================================================
 
 mission:
-  # Phase I waypoints (sequential order)
-  phase_i_waypoints:
-    punt_b:
-      x: 3.72
-      y: 2.55
-      yaw: 0.0  # Will be computed dynamically
-    punt_o:
-      x: 5.10
-      y: 12.61
-      yaw: 0.0
-    zona_2_entry:
-      x: 5.00
-      y: 11.69  # Punt Base as Zona 2 reference
-      yaw: 0.0
+  # Full route in table row order (left column, right column per row)
+  route:
+    - name: "Punt A"
+      x: 4.280
+      y: 1.735
+    - name: "P Base"
+      x: 3.475
+      y: 15.390
+    - name: "Punt B"
+      x: 5.280
+      y: 1.735
+    - name: "Punt Q"
+      x: 9.115
+      y: 14.190
+    - name: "Punt C"
+      x: 4.880
+      y: 2.535
+    - name: "Punt R"
+      x: 7.310
+      y: 16.190
+    - name: "Punt D"
+      x: 5.080
+      y: 5.740
+    - name: "Punt S"
+      x: 3.675
+      y: 14.190
+    - name: "Punt E"
+      x: 5.880
+      y: 8.145
+    - name: "Punt T"
+      x: 1.275
+      y: 14.990
+    - name: "Punt F"
+      x: 5.480
+      y: 10.545
+    - name: "Punt U"
+      x: 1.075
+      y: 16.190
+    - name: "Porta (Door)"
+      x: 6.280
+      y: 11.685
 
-  # Phase II - Exploration and base point
-  punt_base:
-    x: 5.00
-    y: 11.69
-    yaw: 0.0
-
-  # Key reference points
-  reference_points:
-    punt_a:
-      x: 2.52
-      y: 1.35
-    punt_c:
-      x: 1.32
-      y: 0.95
-    punt_d:
-      x: 3.32
-      y: 0.95
-    porta:
-      x: 5.92
-      y: 8.12
-    punt_p:
-      x: 0.30
-      y: 11.01
-    punt_q:
-      x: 1.90
-      y: 12.21
-    punt_r:
-      x: 7.12
-      y: 12.61
-
-  # Passadis exploration area bounds (Phase II)
-  passadis:
-    x_min: 0.30
-    x_max: 7.12
-    y_min: 11.00
-    y_max: 13.00
-    exploration_step: 1.0  # meters between sweep lines
-
-  # Station detection parameters
-  station:
-    side_length: 0.40        # 40cm x 40cm station
-    pillar_diameter: 0.05    # ~5cm diameter cylinders
-    pillar_tolerance: 0.10   # tolerance for pillar matching
-    pattern_tolerance: 0.15  # tolerance for square pattern matching
+  # Note: origin of occupancy grid (0,0) is at world (0.59, 3.56)
+  map_origin_offset:
+    x: 0.59
+    y: 3.56
 
   # Safety parameters
   safety:
-    emergency_stop_distance: 0.15  # meters - hard stop
-    slowdown_distance: 0.40        # meters - reduce speed
-    max_linear_speed: 0.15         # m/s
-    max_angular_speed: 0.5         # rad/s
-    parking_linear_speed: 0.05     # m/s - precision phase
-    parking_angular_speed: 0.2     # rad/s - precision phase
+    emergency_stop_distance: 0.15
+    slowdown_distance: 0.40
+    max_linear_speed: 0.15
+    max_angular_speed: 0.5

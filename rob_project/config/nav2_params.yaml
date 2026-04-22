@@ -69,6 +69,8 @@ controller_server:
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
+    odom_topic: "odom"
+    enable_stamped_cmd_vel: false
     progress_checker_plugins: ["progress_checker"]
     goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
@@ -178,8 +180,8 @@ global_costmap:
       # Use rolling window so the costmap always covers the robot position
       # (SLAM starts with a tiny map that may not include the robot origin)
       rolling_window: true
-      width: 20
-      height: 20
+      width: 40
+      height: 40
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -265,6 +267,7 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
+    enable_stamped_cmd_vel: false
     max_velocity: [0.15, 0.0, 0.5]
     min_velocity: [-0.15, 0.0, -0.5]
     max_accel: [1.0, 0.0, 2.0]
